@@ -1,6 +1,35 @@
 #include "impls.h"
 #include <unordered_map>
-
+int get_dominant_color(const cv::Mat& roi)
+{
+    int blue_threshold = 150, green_threshold = 150, red_threshold = 150;
+    int blue_sum = 0, green_sum = 0, red_sum = 0;
+    int total_pixels = roi.rows * roi.cols;
+    for (int i = 0; i < roi.rows; ++i)
+    {
+        for (int j = 0; j < roi.cols; ++j)
+        {
+            cv::Vec3b pixel = roi.at<cv::Vec3b>(i, j);
+            blue_sum += pixel[0];
+            green_sum += pixel[1];
+            red_sum += pixel[2];
+        }
+    }
+    int blue_avg = blue_sum / total_pixels, green_avg = green_sum / total_pixels, red_avg = red_sum / total_pixels;
+    if (blue_avg > blue_threshold && blue_avg > green_avg && blue_avg > red_avg)
+    {
+        return 0;
+    }
+    else if (green_avg > green_threshold && green_avg > blue_avg && green_avg > red_avg)
+    {
+        return 1;
+    }
+    else
+    {
+        return 2;
+    }
+}
+ 
 
 std::unordered_map<int, cv::Rect> roi_color(const cv::Mat& input) {
     /**
@@ -30,6 +59,18 @@ std::unordered_map<int, cv::Rect> roi_color(const cv::Mat& input) {
      */
     std::unordered_map<int, cv::Rect> res;
     // IMPLEMENT YOUR CODE HERE
-
+    cv::Mat gray;
+    cv::cvtColor(input, gray, cv::COLOR_BGR2GRAY);
+    cv::Mat binary;
+    cv::threshold(gray, binary, 0, 255, cv::THRESH_BINARY_INV + cv::THRESH_OTSU);
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+    cv::findContours(binary, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+    for (const auto& contour : contours) {
+        cv::Rect rect = cv::boundingRect(contour);
+        cv::Mat roi = input(rect);
+        int color = get_dominant_color(roi);
+        res[color] = rect;
+    }
     return res;
 }

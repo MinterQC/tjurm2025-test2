@@ -17,5 +17,19 @@ float compute_iou(const cv::Rect& a, const cv::Rect& b) {
      * 运行测试点，显示通过就行，不通过会告诉你哪一组矩形错了。
     */
     // IMPLEMENT YOUR CODE HERE
-    return 0.f;
+    float iou;
+    float w,h,lx,rx,uy,dy,lw,rw,uh,dh;
+    if(a.x>=b.x){rx=a.x;lx=b.x;lw=b.width;rw=a.width;}
+    else{rx=b.x;lx=a.x;lw=a.width;rw=b.width;}
+    if(a.y>=b.y){dy=a.y;uy=b.y;uh=b.height;dh=a.height;}
+    else{dy=b.y;uy=a.y;uh=a.height;dh=b.height;}
+    w=lw-rx+lx;
+    if(w<0){w=0;}else if(w>rw){w=rw;}
+    h=uh-dy+uy;
+    if(h<0){h=0;}else if(h>dh){h=dh;}
+    float s1,s2;
+    s1=w*h;
+    s2=a.width*a.height+b.width*b.height-s1;
+    iou=s1/s2;
+    return iou;
 }
